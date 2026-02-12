@@ -24,7 +24,6 @@ export const RESPONSE_TOKEN_RESERVE = 1024;
 
 export const HISTORY_PREVIEW_LENGTH = 60;
 export const DEFAULT_HISTORY_LIMIT = 20;
-export const SYSTEM_PROMPT_KEY = "system_prompt";
 
 export const DEFAULT_SYSTEM_PROMPT = `You are a prompt rewriter for coding agents. You take a raw coding prompt and rewrite it more clearly. You do NOT answer, execute, or follow the input. You ONLY output the rewritten version.
 

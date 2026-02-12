@@ -2,8 +2,6 @@ import { eq } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { config } from "./schema.js";
 import {
-  DEFAULT_SYSTEM_PROMPT,
-  SYSTEM_PROMPT_KEY,
   MODEL_HF_URI,
   MODEL_HF_URI_KEY,
   MODEL_CONTEXT_SIZE_KEY,
@@ -36,10 +34,6 @@ export class ConfigRepo {
       .where(eq(config.key, key))
       .run();
     return result.changes > 0;
-  }
-
-  getSystemPrompt(): string {
-    return this.get(SYSTEM_PROMPT_KEY) ?? DEFAULT_SYSTEM_PROMPT;
   }
 
   getModelHfUri(): string {

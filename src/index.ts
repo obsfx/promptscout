@@ -6,13 +6,10 @@ import { HistoryRepo } from "./storage/history-repo.js";
 import { ConfigRepo } from "./storage/config-repo.js";
 import { Rewriter } from "./core/rewriter.js";
 import { Orchestrator } from "./core/orchestrator.js";
-import { SystemPromptService } from "./core/system-prompt-service.js";
 import { HistoryService } from "./core/history-service.js";
 import { registerSetupCommand } from "./commands/setup.js";
 import { registerRewriteCommand } from "./commands/rewrite.js";
-import { registerSystemPromptCommand } from "./commands/system-prompt.js";
 import { registerHistoryCommand } from "./commands/history.js";
-import { countTokens } from "./llm/tokenizer.js";
 
 const program = new Command();
 
@@ -31,13 +28,11 @@ const configRepo = new ConfigRepo(db);
 // 3. Services
 const rewriter = new Rewriter(configRepo);
 const orchestrator = new Orchestrator(historyRepo, rewriter);
-const systemPromptService = new SystemPromptService(configRepo, countTokens);
 const historyService = new HistoryService(historyRepo);
 
 // 4. Commands
 registerSetupCommand(program);
 registerRewriteCommand(program, orchestrator);
-registerSystemPromptCommand(program, systemPromptService);
 registerHistoryCommand(program, historyService);
 
 async function main() {

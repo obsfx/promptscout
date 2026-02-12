@@ -2,7 +2,6 @@ import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { resolveDbPath } from "../utils/paths.js";
-import { DEFAULT_SYSTEM_PROMPT, SYSTEM_PROMPT_KEY } from "../constants.js";
 
 let db: Database.Database | null = null;
 let drizzleDb: BetterSQLite3Database | null = null;
@@ -28,10 +27,6 @@ function migrate(database: Database.Database): void {
 
       PRAGMA user_version = 1;
     `);
-
-    database
-      .prepare("INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)")
-      .run(SYSTEM_PROMPT_KEY, DEFAULT_SYSTEM_PROMPT);
   }
 
   if (version < 2) {

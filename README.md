@@ -136,15 +136,6 @@ promptscout --json-output "fix the pagination bug"
 ### Commands
 
 ```bash
-# View the current system prompt
-promptscout system-prompt
-
-# Edit system prompt in $EDITOR
-promptscout system-prompt edit
-
-# Reset system prompt to default
-promptscout system-prompt reset
-
 # View prompt history (current directory)
 promptscout history
 
