@@ -74,7 +74,7 @@ export function parseToolCalls(output: string): ToolCall[] {
   const fromBlock = tryParse(stripCodeBlocks(cleaned));
   if (fromBlock) return fromBlock;
 
-  // 3. Repair broken JSON (trailing commas, missing quotes, etc.)
+  // 4. Repair broken JSON (trailing commas, missing quotes, etc.)
   try {
     const repaired = jsonrepair(cleaned);
     return extractValidCalls(JSON.parse(repaired));
