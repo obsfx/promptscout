@@ -36,12 +36,63 @@ if [ -z "$improved" ]; then
   exit 0
 fi
 
-# Inject as additionalContext
-cat <<EOF
+# Build summary message counting results per tool
+build_summary() {
+  local text="$1"
+  local parts=()
+
+  local files
+  files=$(echo "$text" | awk '/<file_finder/{f=1;next}/<\/file_finder>/{f=0}f && NF' | wc -l | tr -d ' ')
+  [ "$files" -gt 0 ] && parts+=("${files} files")
+
+  local sections
+  sections=$(echo "$text" | awk '/<section_finder/{f=1;next}/<\/section_finder>/{f=0}f && NF' | wc -l | tr -d ' ')
+  [ "$sections" -gt 0 ] && parts+=("${sections} sections")
+
+  local defs
+  defs=$(echo "$text" | awk '/<definition_finder/{f=1;next}/<\/definition_finder>/{f=0}f && NF' | wc -l | tr -d ' ')
+  [ "$defs" -gt 0 ] && parts+=("${defs} definitions")
+
+  local imports
+  imports=$(echo "$text" | awk '/<import_tracer/{f=1;next}/<\/import_tracer>/{f=0}f && NF' | wc -l | tr -d ' ')
+  [ "$imports" -gt 0 ] && parts+=("${imports} imports")
+
+  local commits
+  commits=$(echo "$text" | awk '/<git_history/{f=1;next}/<\/git_history>/{f=0}f && /^[0-9a-f]/' | wc -l | tr -d ' ')
+  [ "$commits" -gt 0 ] && parts+=("${commits} commits")
+
+  if [ ${#parts[@]} -eq 0 ]; then
+    echo ""
+    return
+  fi
+
+  local summary="promptscout: enriched context"
+  for part in "${parts[@]}"; do
+    summary+=" (+${part})"
+  done
+  echo "$summary"
+}
+
+summary=$(build_summary "$improved")
+
+# Inject as additionalContext with optional systemMessage
+if [ -n "$summary" ]; then
+  cat <<HOOKEOF
+{
+  "systemMessage": $(echo "$summary" | jq -Rs .),
+  "hookSpecificOutput": {
+    "hookEventName": "UserPromptSubmit",
+    "additionalContext": $(echo "$improved" | jq -Rs .)
+  }
+}
+HOOKEOF
+else
+  cat <<HOOKEOF
 {
   "hookSpecificOutput": {
     "hookEventName": "UserPromptSubmit",
     "additionalContext": $(echo "$improved" | jq -Rs .)
   }
 }
-EOF
+HOOKEOF
+fi
