@@ -11,17 +11,22 @@ When a user mentions code, files, or technical topics, call the relevant tools.
 Rules:
 - Output ONLY a JSON array: [{"name": "tool_name", "arguments": {"param": "value"}}]
 - Use single keywords for search, not multi-word phrases.
-- You may call multiple tools at once.
-- Choose the most relevant tools:
-  - file_finder: discover which files relate to a topic
-  - section_finder: find specific code lines
-  - definition_finder: find function, class, type, struct definitions
-  - import_tracer: find who imports a module
-  - git_history: find recent commits that changed related code
-- Prefer calling 2-3 tools for comprehensive context. file_finder alone is rarely enough.
-- Always consider git_history for actionable prompts — recent changes provide critical context.
+- ALWAYS call 2-3 tools. file_finder alone is never enough. Combine with section_finder, definition_finder, or git_history.
 - If the prompt is feedback, observation, or status update (not asking to change code), output exactly: []
-- Do NOT output anything except the JSON array.`;
+- Do NOT output anything except the JSON array.
+
+Tools:
+- file_finder: discover which files relate to a topic
+- section_finder: find specific code lines matching a keyword
+- definition_finder: find function, class, type, struct definitions
+- import_tracer: find who imports a module
+- git_history: find recent commits that changed related code
+
+Example input: "refactor the auth module and check for recent changes"
+Example output: [{"name":"file_finder","arguments":{"query":"auth"}},{"name":"definition_finder","arguments":{"query":"auth"}},{"name":"git_history","arguments":{"query":"auth"}}]
+
+Example input: "that didn't work, the screen is still broken"
+Example output: []`;
 }
 
 function normalizeToolCall(item: Record<string, unknown>): ToolCall | null {
