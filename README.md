@@ -16,7 +16,7 @@ Your original prompt is never modified. promptscout only appends context.
 
 ```mermaid
 flowchart LR
-    A["Raw Prompt"] --> B["Local LLM<br/>(Qwen 3 4B)"]
+    A["Raw Prompt"] --> B["Local LLM<br/>(Ministral 3B)"]
     B -->|"tool calls"| C["Execute Tools"]
     C --> D["grep / git"]
     D --> E["Original Prompt<br/>+ Discovered Context"]
@@ -34,7 +34,7 @@ flowchart LR
 
 - Node.js >= 20
 - C++ compiler (Xcode Command Line Tools on macOS, `build-essential` on Linux)
-- ~3GB disk space for the model
+- ~2.5GB disk space for the model
 
 ### Install
 
@@ -54,7 +54,7 @@ pnpm link --global
 
 ### Setup
 
-Run `promptscout setup` to create the data directory and download the `Qwen 3 4B` model (~2.5GB). The model is stored in `~/.promptscout/models/`.
+Run `promptscout setup` to create the data directory and download the `Ministral 3B Instruct` model (~2.1GB). The model is stored in `~/.promptscout/models/`.
 
 ## Claude Code Plugin
 
@@ -85,11 +85,11 @@ If `promptscout` is not installed or fails for any reason, the plugin falls back
 
 ## Model
 
-promptscout uses `Qwen 3 4B` (`Q4_K_M` quantization) running locally via [node-llama-cpp](https://github.com/withcatai/node-llama-cpp). The model runs on CPU by default to avoid GPU memory issues on constrained machines.
+promptscout uses `Ministral 3B Instruct` ([Ministral-3-3B-Instruct-2512](https://huggingface.co/mistralai/Ministral-3-3B-Instruct-2512) by Mistral AI, `Q4_K_M` quantization) running locally via [node-llama-cpp](https://github.com/withcatai/node-llama-cpp). The model runs on CPU by default to avoid GPU memory issues on constrained machines.
 
-- Size: ~2.5GB (`GGUF Q4_K_M`)
+- Size: ~2.1GB (`GGUF Q4_K_M`)
 - Context: 4096 tokens
-- Latency: 7-15s per prompt (CPU, Apple Silicon)
+- Latency: 3-5s per prompt (CPU, Apple Silicon)
 - Purpose: Decides which search tools to call based on your prompt. Does not rewrite your text.
 
 ## Tools
@@ -126,11 +126,23 @@ promptscout --json-output "fix the pagination bug"
 
 ```
 <prompt>                     Raw prompt to enrich
--o, --output <file>          Write result to file
+-V, --version                Output version number
+-o, --output <file>          Write result to file instead of clipboard
 --dry-run                    Show result without copying or saving
 --json-output                Output JSON instead of plain text
 --no-clipboard               Skip clipboard copy
 --project-dir <dir>          Project root directory
+```
+
+### Commands
+
+```
+setup                        Initialize promptscout and download the model
+system-prompt edit           Edit system prompt in $EDITOR
+system-prompt reset          Reset system prompt to default
+history                      View prompt history (-a for all dirs, -n <limit>)
+history show <id>            Show full detail of a history entry
+history clear                Clear all history
 ```
 
 ## Examples
@@ -153,24 +165,22 @@ Sources/Core/AudioCaptureSession.swift
 Sources/Core/AudioTapManager.swift
 entitlements.plist
 README.md
+.github/workflows/release.yml
+Package.swift
 Sources/Core/InputDeviceQuery.swift
 Sources/IO/RingBuffer.swift
 Sources/IO/WAVWriter.swift
 Sources/CLI/ExitCodes.swift
 </file_finder>
 
-<git_history query="audio">
-d41aece Initial commit: audiograb - macOS system audio capture CLI
-  Package.swift
-  README.md
-  Sources/CLI/ArgumentParser.swift
-  Sources/Core/AudioCaptureSession.swift
-  Sources/Core/AudioTapManager.swift
-  Sources/IO/RingBuffer.swift
-  Sources/main.swift
-d800ac1 Add microphone recording support via --source mic flag
-  Sources/Info.plist
-</git_history>
+<section_finder query="format">
+Sources/Core/AudioTapManager.swift:10:    case formatQueryFailed(OSStatus)
+Sources/Core/AudioTapManager.swift:34:    private(set) var tapFormat: AudioStreamBasicDescription?
+Sources/Core/AudioTapManager.swift:103:    private func queryTapFormat(tapID: AudioObjectID) throws -> AudioStreamBasicDescription {
+Sources/Core/AudioTapManager.swift:110:        var format = AudioStreamBasicDescription()
+Sources/Core/InputDeviceQuery.swift:41:    var formatAddress = AudioObjectPropertyAddress(
+Sources/Core/InputDeviceQuery.swift:46:    var format = AudioStreamBasicDescription()
+</section_finder>
 ```
 
 ### TypeScript project (task management CLI)
@@ -188,22 +198,31 @@ Context from codebase:
 <file_finder query="task">
 tests/commands/subtask.test.ts
 tests/commands/task.test.ts
+src/commands/subtask.ts
 src/commands/task.ts
 src/services/task.ts
 tests/integration/workflows.test.ts
 tests/commands/comment.test.ts
 tests/commands/history.test.ts
+tests/commands/seed.test.ts
+tests/commands/search.test.ts
 </file_finder>
 
-<definition_finder query="Task">
-tests/integration/workflows.test.ts:10:interface Task {
-src/services/task.ts:72:export function listTasks(options?: {
-</definition_finder>
+<section_finder query="status">
+tests/integration/workflows.test.ts:49:  items: Array<{ id: string; status: string }>;
+tests/integration/workflows.test.ts:68:      expect(task.status).toBe("todo");
+tests/integration/workflows.test.ts:238:      // Filter by type, status, and priority
+tests/integration/workflows.test.ts:239:      const result = ctx.runToon<ListResponse>("list --type task --status todo --priority 1");
+src/utils/output.ts:148:    const tags = task.tags ? ` [${task.tags}]` : "";
+src/utils/output.ts:150:    return `${task.id} | ${task.status.padEnd(11)} | P${task.priority} | ${task.title}${tags}${parent}`;
+</section_finder>
 
-<section_finder query="listTasks">
-src/commands/task.ts:5:  listTasks,
-src/commands/task.ts:58:      const tasks = listTasks({
-src/services/task.ts:72:export function listTasks(options?: {
+<section_finder query="tags">
+tests/commands/task.test.ts:50:      const task = ctx.runToon<Task>(`task create -t "Full Task" -d "Description" -p 1 -s in_progress --tags "tag1,tag2" -e ${epic.id}`);
+tests/commands/task.test.ts:189:    it("should update task tags", () => {
+src/types/index.ts:83:  tags: string | null;
+src/db/schema.ts:34:  tags: text("tags"),
+src/db/client.ts:92:      tags TEXT,
 </section_finder>
 ```
 
@@ -225,19 +244,13 @@ src/tui/layouts/search/search-input/SearchWarning.tsx
 src/tui/layouts/search/search-input/SearchInput.tsx
 src/tui/layouts/search/index.tsx
 src/tui/layouts/search/search-input/index.tsx
+.claude/settings.local.json
 README.md
 package.json
 CLAUDE.md
+.idea/workspace.xml
 src/tui/index.tsx
 </file_finder>
-
-<section_finder query="search">
-src/tui/components/ResultListInfo.tsx:6:  const searchValue = useBoundStore((state) => state.searchValue);
-CLAUDE.md:30:- `libgen-downloader -s "query"` - Direct search with TUI
-CLAUDE.md:43:  - `Adapter.ts` - Abstract base for different search sources
-CLAUDE.md:54:- `app.ts` - UI state, layouts, loading indicators, search state
-CLAUDE.md:58:- `cache.ts` - Search result caching mechanism
-</section_finder>
 ```
 
 ### Feedback detection

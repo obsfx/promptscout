@@ -32,7 +32,7 @@ export function parseToolCalls(output: string): ToolCall[] {
     if (Array.isArray(parsed)) return parsed;
     return [];
   } catch {
-    // Fallback: extract JSON array from mixed output
+    // Fallback: extract JSON array from mixed output (e.g. markdown code blocks)
     const match = cleaned.match(/\[[\s\S]*\]/);
     if (match) {
       try {
