@@ -7,6 +7,7 @@ import {
   MODEL_DIR,
   MODEL_HF_URI,
   MODEL_FILE_NAME,
+  MODEL_DISPLAY_NAME,
   MODEL_DOWNLOAD_URI,
 } from "../constants.js";
 import { resolveModelDir } from "../utils/paths.js";
@@ -29,7 +30,7 @@ export function registerSetupCommand(program: Command): void {
         return;
       }
 
-      console.log("Downloading Ministral 3B (~2.1GB)...\n");
+      console.log(`Downloading ${MODEL_DISPLAY_NAME} (${MODEL_FILE_NAME})...\n`);
 
       try {
         await resolveModelFile(MODEL_DOWNLOAD_URI, {

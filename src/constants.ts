@@ -7,6 +7,7 @@ export const DATA_DIR = join(HOME, ".promptscout");
 export const DB_PATH = join(DATA_DIR, "promptscout.db");
 export const MODEL_DIR = join(DATA_DIR, "models");
 
+export const MODEL_DISPLAY_NAME = "Ministral 3B";
 export const MODEL_FILE_NAME = "Ministral-3-3B-Instruct-2512-Q4_K_M.gguf";
 export const MODEL_HF_URI = join(MODEL_DIR, MODEL_FILE_NAME);
 export const MODEL_DOWNLOAD_URI =

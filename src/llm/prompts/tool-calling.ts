@@ -18,6 +18,8 @@ Rules:
   - definition_finder: find function, class, type, struct definitions
   - import_tracer: find who imports a module
   - git_history: find recent commits that changed related code
+- Prefer calling 2-3 tools for comprehensive context. file_finder alone is rarely enough.
+- Always consider git_history for actionable prompts — recent changes provide critical context.
 - If the prompt is feedback, observation, or status update (not asking to change code), output exactly: []
 - Do NOT output anything except the JSON array.`;
 }

@@ -186,17 +186,28 @@ Sources/IO/WAVWriter.swift
 Sources/CLI/ExitCodes.swift
 </file_finder>
 
-<definition_finder query="format">
-Sources/Core/AudioTapManager.swift:23:        case .formatQueryFailed(let status):
-Sources/Core/AudioTapManager.swift:34:    private(set) var tapFormat: AudioStreamBasicDescription?
-Sources/Core/AudioTapManager.swift:103:    private func queryTapFormat(tapID: AudioObjectID) throws -> AudioStreamBasicDescription {
-Sources/Core/AudioTapManager.swift:110:        var format = AudioStreamBasicDescription()
-Sources/Core/InputDeviceQuery.swift:41:    var formatAddress = AudioObjectPropertyAddress(
-Sources/Core/InputDeviceQuery.swift:46:    var format = AudioStreamBasicDescription()
-Sources/main.swift:49:              let tapFormat = tapManager.tapFormat else {
-Sources/main.swift:53:        let outputSampleRate = UInt32(tapFormat.mSampleRate)
-Sources/main.swift:55:        let sourceChannels = Int(tapFormat.mChannelsPerFrame)
-</definition_finder>
+<file_finder query="format">
+README.md
+Sources/Core/AudioTapManager.swift
+Sources/Core/InputDeviceQuery.swift
+Sources/IO/WAVWriter.swift
+Sources/main.swift
+</file_finder>
+
+<git_history query="audio">
+d800ac1 Add microphone recording support via --source mic flag
+  Sources/Info.plist
+d41aece Initial commit: audiograb - macOS system audio capture CLI
+  Package.swift
+  README.md
+  Sources/CLI/ArgumentParser.swift
+  Sources/CLI/ExitCodes.swift
+  Sources/Core/AudioCaptureSession.swift
+  Sources/Core/AudioTapManager.swift
+  Sources/IO/RingBuffer.swift
+  Sources/main.swift
+  entitlements.plist
+</git_history>
 ```
 
 ### TypeScript project (task management CLI)
@@ -258,13 +269,27 @@ src/tui/layouts/search/search-input/SearchWarning.tsx
 src/tui/layouts/search/search-input/SearchInput.tsx
 src/tui/layouts/search/index.tsx
 src/tui/layouts/search/search-input/index.tsx
-.claude/settings.local.json
 README.md
 package.json
 CLAUDE.md
-.idea/workspace.xml
 src/tui/index.tsx
 </file_finder>
+
+<git_history query="search">
+2f2f907 Implement LibGen+ support with new adapter architecture
+  CLAUDE.md
+  src/api/adapters/LibgenPlusAdapter.ts
+  src/api/data/config.ts
+  src/api/data/search.ts
+  src/tui/layouts/search/index.tsx
+  src/tui/store/cache.ts
+8e8402c Refactor cache and add filter functionality
+  src/tui/store/cache.ts
+  src/tui/store/events.ts
+89bb926 Add search by filters
+  src/tui/layouts/search/search-filter/FilterInput.tsx
+  src/tui/store/app.ts
+</git_history>
 ```
 
 ### Feedback detection
