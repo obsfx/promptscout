@@ -79,7 +79,7 @@ summary=$(build_summary "$improved")
 if [ -n "$summary" ]; then
   cat <<HOOKEOF
 {
-  "systemMessage": $(echo "$summary" | jq -Rs .),
+  "systemMessage": $(printf '%s' "$summary" | jq -Rs .),
   "hookSpecificOutput": {
     "hookEventName": "UserPromptSubmit",
     "additionalContext": $(echo "$improved" | jq -Rs .)
