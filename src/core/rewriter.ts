@@ -13,15 +13,15 @@ import {
 } from "../tools/index.js";
 
 const TOOL_CALLING_PARAMS: InferenceParams = {
-  temperature: 0.6,
-  topP: 0.8,
+  temperature: 0.1,
+  topP: 0.9,
   topK: 20,
   minP: 0.0,
   repeatPenalty: {
     lastTokens: 64,
-    penalty: 1.1,
+    penalty: 1.0,
     frequencyPenalty: 0.0,
-    presencePenalty: 0.5,
+    presencePenalty: 0.0,
     penalizeNewLine: false,
   },
 };

@@ -16,7 +16,7 @@ Your original prompt is never modified. promptscout only appends context.
 
 ```mermaid
 flowchart LR
-    A["Raw Prompt"] --> B["Local LLM<br/>(Qwen 3 4B)"]
+    A["Raw Prompt"] --> B["Local LLM<br/>(Ministral 3B)"]
     B -->|"tool calls"| C["Execute Tools"]
     C --> D["grep / git"]
     D --> E["Original Prompt<br/>+ Discovered Context"]
@@ -34,7 +34,7 @@ flowchart LR
 
 - Node.js >= 20
 - C++ compiler (Xcode Command Line Tools on macOS, `build-essential` on Linux)
-- ~3GB disk space for the model
+- ~2.5GB disk space for the model
 
 ### Install
 
@@ -54,7 +54,7 @@ pnpm link --global
 
 ### Setup
 
-Run `promptscout setup` to create the data directory and download the `Qwen 3 4B` model (~2.5GB). The model is stored in `~/.promptscout/models/`.
+Run `promptscout setup` to create the data directory and download the `Ministral 3B` model (~2.1GB). The model is stored in `~/.promptscout/models/`.
 
 ## Claude Code Plugin
 
@@ -85,11 +85,11 @@ If `promptscout` is not installed or fails for any reason, the plugin falls back
 
 ## Model
 
-promptscout uses `Qwen 3 4B` (`Q4_K_M` quantization) running locally via [node-llama-cpp](https://github.com/withcatai/node-llama-cpp). The model runs on CPU by default to avoid GPU memory issues on constrained machines.
+promptscout uses `Ministral 3B` (`Q4_K_M` quantization) running locally via [node-llama-cpp](https://github.com/withcatai/node-llama-cpp). The model uses GPU acceleration (Metal on Apple Silicon) by default.
 
-- Size: ~2.5GB (`GGUF Q4_K_M`)
+- Size: ~2.1GB (`GGUF Q4_K_M`)
 - Context: 4096 tokens
-- Latency: 7-15s per prompt (CPU, Apple Silicon)
+- Latency: ~1-3s per prompt (GPU, Apple Silicon)
 - Purpose: Decides which search tools to call based on your prompt. Does not rewrite your text.
 
 ## Tools
@@ -133,6 +133,31 @@ promptscout --json-output "fix the pagination bug"
 --project-dir <dir>          Project root directory
 ```
 
+### Commands
+
+```bash
+# View the current system prompt
+promptscout system-prompt
+
+# Edit system prompt in $EDITOR
+promptscout system-prompt edit
+
+# Reset system prompt to default
+promptscout system-prompt reset
+
+# View prompt history (current directory)
+promptscout history
+
+# View history across all directories
+promptscout history -a
+
+# Show full detail of a history entry
+promptscout history show <id>
+
+# Clear all history
+promptscout history clear
+```
+
 ## Examples
 
 ### Swift project (macOS audio capture tool)
@@ -153,24 +178,25 @@ Sources/Core/AudioCaptureSession.swift
 Sources/Core/AudioTapManager.swift
 entitlements.plist
 README.md
+.github/workflows/release.yml
+Package.swift
 Sources/Core/InputDeviceQuery.swift
 Sources/IO/RingBuffer.swift
 Sources/IO/WAVWriter.swift
 Sources/CLI/ExitCodes.swift
 </file_finder>
 
-<git_history query="audio">
-d41aece Initial commit: audiograb - macOS system audio capture CLI
-  Package.swift
-  README.md
-  Sources/CLI/ArgumentParser.swift
-  Sources/Core/AudioCaptureSession.swift
-  Sources/Core/AudioTapManager.swift
-  Sources/IO/RingBuffer.swift
-  Sources/main.swift
-d800ac1 Add microphone recording support via --source mic flag
-  Sources/Info.plist
-</git_history>
+<definition_finder query="format">
+Sources/Core/AudioTapManager.swift:23:        case .formatQueryFailed(let status):
+Sources/Core/AudioTapManager.swift:34:    private(set) var tapFormat: AudioStreamBasicDescription?
+Sources/Core/AudioTapManager.swift:103:    private func queryTapFormat(tapID: AudioObjectID) throws -> AudioStreamBasicDescription {
+Sources/Core/AudioTapManager.swift:110:        var format = AudioStreamBasicDescription()
+Sources/Core/InputDeviceQuery.swift:41:    var formatAddress = AudioObjectPropertyAddress(
+Sources/Core/InputDeviceQuery.swift:46:    var format = AudioStreamBasicDescription()
+Sources/main.swift:49:              let tapFormat = tapManager.tapFormat else {
+Sources/main.swift:53:        let outputSampleRate = UInt32(tapFormat.mSampleRate)
+Sources/main.swift:55:        let sourceChannels = Int(tapFormat.mChannelsPerFrame)
+</definition_finder>
 ```
 
 ### TypeScript project (task management CLI)
@@ -188,23 +214,30 @@ Context from codebase:
 <file_finder query="task">
 tests/commands/subtask.test.ts
 tests/commands/task.test.ts
+src/commands/subtask.ts
 src/commands/task.ts
 src/services/task.ts
 tests/integration/workflows.test.ts
 tests/commands/comment.test.ts
 tests/commands/history.test.ts
+tests/commands/seed.test.ts
+tests/commands/search.test.ts
 </file_finder>
+
+<section_finder query="filter">
+tests/integration/workflows.test.ts:229:  describe("list and filter integration", () => {
+tests/integration/workflows.test.ts:230:    it("should filter by multiple criteria", () => {
+tests/integration/workflows.test.ts:238:      // Filter by type, status, and priority
+tests/commands/history.test.ts:90:  describe("entity filter", () => {
+tests/commands/history.test.ts:100:  describe("type filter", () => {
+tests/commands/history.test.ts:139:  describe("action filter", () => {
+</section_finder>
 
 <definition_finder query="Task">
 tests/integration/workflows.test.ts:10:interface Task {
 src/services/task.ts:72:export function listTasks(options?: {
-</definition_finder>
-
-<section_finder query="listTasks">
 src/commands/task.ts:5:  listTasks,
-src/commands/task.ts:58:      const tasks = listTasks({
-src/services/task.ts:72:export function listTasks(options?: {
-</section_finder>
+</definition_finder>
 ```
 
 ### React/TypeScript project (terminal ebook downloader)
@@ -225,19 +258,13 @@ src/tui/layouts/search/search-input/SearchWarning.tsx
 src/tui/layouts/search/search-input/SearchInput.tsx
 src/tui/layouts/search/index.tsx
 src/tui/layouts/search/search-input/index.tsx
+.claude/settings.local.json
 README.md
 package.json
 CLAUDE.md
+.idea/workspace.xml
 src/tui/index.tsx
 </file_finder>
-
-<section_finder query="search">
-src/tui/components/ResultListInfo.tsx:6:  const searchValue = useBoundStore((state) => state.searchValue);
-CLAUDE.md:30:- `libgen-downloader -s "query"` - Direct search with TUI
-CLAUDE.md:43:  - `Adapter.ts` - Abstract base for different search sources
-CLAUDE.md:54:- `app.ts` - UI state, layouts, loading indicators, search state
-CLAUDE.md:58:- `cache.ts` - Search result caching mechanism
-</section_finder>
 ```
 
 ### Feedback detection

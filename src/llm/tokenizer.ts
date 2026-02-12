@@ -1,6 +1,5 @@
 import { getLlama, resolveModelFile, LlamaLogLevel } from "node-llama-cpp";
 import type { LlamaModel } from "node-llama-cpp";
-import { GPU_LAYERS } from "../constants.js";
 import { getModelDir } from "./model-manager.js";
 
 let vocabModel: LlamaModel | null = null;
@@ -21,7 +20,6 @@ async function getVocabModel(hfUri: string): Promise<LlamaModel> {
   const llama = await getLlama({ logLevel: LlamaLogLevel.error });
   vocabModel = await llama.loadModel({
     modelPath,
-    gpuLayers: GPU_LAYERS,
     vocabOnly: true,
   });
   cachedUri = hfUri;

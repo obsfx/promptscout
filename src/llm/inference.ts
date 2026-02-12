@@ -6,7 +6,6 @@ import {
   LlamaLogLevel,
 } from "node-llama-cpp";
 import type { InferenceParams } from "../types.js";
-import { GPU_LAYERS } from "../constants.js";
 import { getModelDir } from "./model-manager.js";
 
 export async function generate(
@@ -30,7 +29,6 @@ export async function generate(
   const llama = await getLlama({ logLevel: LlamaLogLevel.error });
   const model = await llama.loadModel({
     modelPath,
-    gpuLayers: GPU_LAYERS,
   });
   const context = await model.createContext({
     contextSize,

@@ -29,7 +29,7 @@ export function registerSetupCommand(program: Command): void {
         return;
       }
 
-      console.log("Downloading Qwen 3 4B (~2.5GB)...\n");
+      console.log("Downloading Ministral 3B (~2.1GB)...\n");
 
       try {
         await resolveModelFile(MODEL_DOWNLOAD_URI, {

@@ -1,4 +1,5 @@
 import type { ToolCall } from "../../tools/index.js";
+import { jsonrepair } from "jsonrepair";
 
 export function buildToolCallingPrompt(toolDefs: unknown[]): string {
   return `You are a code search assistant. You have access to the following tools:
@@ -21,26 +22,63 @@ Rules:
 - Do NOT output anything except the JSON array.`;
 }
 
-export function parseToolCalls(output: string): ToolCall[] {
-  const cleaned = output
-    .trim()
-    .replace(/<think>[\s\S]*?<\/think>/g, "")
-    .trim();
+function normalizeToolCall(item: Record<string, unknown>): ToolCall | null {
+  const name = item.name ?? item.function;
+  const args = item.arguments;
+  if (typeof name !== "string" || typeof args !== "object" || args === null) {
+    return null;
+  }
+  return { name, arguments: args as Record<string, string> };
+}
 
+function extractValidCalls(parsed: unknown): ToolCall[] {
+  if (!Array.isArray(parsed)) return [];
+  const calls: ToolCall[] = [];
+  for (const item of parsed) {
+    if (typeof item !== "object" || item === null) continue;
+    const call = normalizeToolCall(item as Record<string, unknown>);
+    if (call) calls.push(call);
+  }
+  return calls;
+}
+
+function stripCodeBlocks(text: string): string {
+  const match = text.match(/```(?:json)?\s*\n?([\s\S]*?)```/);
+  return match ? match[1].trim() : text;
+}
+
+function tryParse(text: string): ToolCall[] | null {
   try {
-    const parsed = JSON.parse(cleaned);
-    if (Array.isArray(parsed)) return parsed;
-    return [];
+    return extractValidCalls(JSON.parse(text));
   } catch {
-    // Fallback: extract JSON array from mixed output
-    const match = cleaned.match(/\[[\s\S]*\]/);
-    if (match) {
-      try {
-        return JSON.parse(match[0]);
-      } catch {
-        return [];
-      }
-    }
+    return null;
+  }
+}
+
+export function parseToolCalls(output: string): ToolCall[] {
+  let cleaned = output.trim();
+
+  // Strip model-specific tokens
+  cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/g, "");
+  cleaned = cleaned.replace(/\[TOOL_CALLS\]/g, "");
+  cleaned = cleaned.trim();
+
+  // 1. Empty array at start means "no tools" — ignore trailing noise
+  if (cleaned.startsWith("[]")) return [];
+
+  // 2. Direct parse (clean JSON output)
+  const direct = tryParse(cleaned);
+  if (direct) return direct;
+
+  // 3. Extract from markdown code blocks
+  const fromBlock = tryParse(stripCodeBlocks(cleaned));
+  if (fromBlock) return fromBlock;
+
+  // 3. Repair broken JSON (trailing commas, missing quotes, etc.)
+  try {
+    const repaired = jsonrepair(cleaned);
+    return extractValidCalls(JSON.parse(repaired));
+  } catch {
     return [];
   }
 }
