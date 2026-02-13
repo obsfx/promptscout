@@ -13,6 +13,7 @@ import { HistoryService } from "./core/history-service.js";
 import { registerSetupCommand } from "./commands/setup.js";
 import { registerRewriteCommand } from "./commands/rewrite.js";
 import { registerHistoryCommand } from "./commands/history.js";
+import { registerMcpServerCommand } from "./commands/mcp-server.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf-8"));
@@ -40,6 +41,7 @@ const historyService = new HistoryService(historyRepo);
 registerSetupCommand(program);
 registerRewriteCommand(program, orchestrator);
 registerHistoryCommand(program, historyService);
+registerMcpServerCommand(program, rewriter);
 
 async function main() {
   try {

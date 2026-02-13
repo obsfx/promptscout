@@ -97,6 +97,85 @@ promptscout: enriched context (+5 files) (+3 sections) (+1 definitions)
 
 If `promptscout` is not installed or fails for any reason, the plugin falls back silently and your original prompt goes through unchanged.
 
+## MCP Server (Codex, Cursor, other agents)
+
+`promptscout` now ships with an MCP server command:
+
+```bash
+promptscout mcp-server
+```
+
+Implementation note: the server uses the official [`@modelcontextprotocol/sdk`](https://www.npmjs.com/package/@modelcontextprotocol/sdk) package (with `zod`) for transport and protocol handling.
+
+### Quick install for Codex
+
+```bash
+# 1) Install promptscout and model
+npm install -g promptscout
+promptscout setup
+
+# 2) In your project directory, register MCP server
+cd /absolute/project/path
+codex mcp add promptscout -- promptscout mcp-server --project-dir "$PWD"
+
+# 3) Verify registration
+codex mcp list
+codex mcp get promptscout
+```
+
+After this, ask Codex to call `promptscout_enrich` before deep exploration.
+
+### Quick install for Cursor
+
+1. Install and setup `promptscout`:
+
+```bash
+npm install -g promptscout
+promptscout setup
+```
+
+2. Add this MCP config in Cursor:
+
+```json
+{
+  "mcpServers": {
+    "promptscout": {
+      "command": "promptscout",
+      "args": ["mcp-server", "--project-dir", "/absolute/project/path"]
+    }
+  }
+}
+```
+
+3. Open your project in Cursor and call the `promptscout_enrich` tool.
+
+### Quick sanity checks
+
+```bash
+command -v promptscout
+promptscout --help
+promptscout mcp-server --help
+```
+
+It exposes one MCP tool:
+
+- `promptscout_enrich`
+  - input: `{ "prompt": string, "projectDir"?: string }`
+  - output: JSON text containing:
+    - `improved`: original prompt + discovered context blocks
+    - `hasContext`: whether context was found
+    - `summary`: counts for files/sections/definitions/imports/commits
+
+### Fallback strategy
+
+Codex does not have Claude's `UserPromptSubmit` pre-submit hook, so this repository also includes an `AGENTS.md` workflow that runs:
+
+```bash
+promptscout "<user_request>" --json-output --no-clipboard --project-dir "$PWD" 2>/dev/null | jq -r '.improved // empty'
+```
+
+when MCP is not configured.
+
 ## Model
 
 promptscout uses `Qwen 3 4B` (`Q4_K_M` quantization) running locally via [node-llama-cpp](https://github.com/withcatai/node-llama-cpp). The model uses GPU acceleration automatically when available (Metal on macOS, CUDA on Linux).
@@ -176,6 +255,17 @@ promptscout history show 42
 
 # Clear all history
 promptscout history clear
+```
+
+### `promptscout mcp-server`
+
+Run `promptscout` as an MCP stdio server so external coding agents can call the `promptscout_enrich` tool.
+
+```bash
+promptscout mcp-server
+
+# Optional default search root for tool calls
+promptscout mcp-server --project-dir /path/to/project
 ```
 
 ## Examples
